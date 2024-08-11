@@ -1,0 +1,25 @@
+name: Call Url Every 24 Hours
+
+on:
+  schedule:
+    - cron: '0 0 * * *' # run at midnight
+
+jobs:
+  call-url:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Get CSRF Token
+        id: get_csrf_token
+        run: |
+          response=$(curl -s 'https://smarttv.club/ajax/getcsrftoken/')
+          csrf_token=$(echo $response | jq -r .csrfToken)
+          echo "CSRF Token: $csrf_token"
+          echo "::set-output name=csrf_token::$csrf_token"
+            
+      - name: Post Data with CSRF Token
+        run: |
+          curl -X POST 'https://yoursecondurl.com/endpoint' \
+          -H "Content-Type: application/json" \
+          -H "X-CSRF-Token: ${{ steps.get_csrf_token.outputs.csrf_token }}" \
+          -d '{"yourKey": "yourValue"}'
